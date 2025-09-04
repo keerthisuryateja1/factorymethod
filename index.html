@@ -1,139 +1,232 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Factory Pattern – Multiple Apps</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Food Delivery App – Factory Method</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 20px; }
-    h2 { margin-top: 40px; color: #333; }
-    .app-block { background: white; padding: 20px; margin: 15px 0; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    button { margin: 5px; padding: 8px 12px; border: none; border-radius: 5px; background: #4CAF50; color: white; cursor: pointer; }
-    button:hover { background: #45a049; }
-    #output { background: black; color: lime; padding: 15px; border-radius: 8px; margin-top: 30px; font-family: monospace; min-height: 120px; }
+    :root { font-family: system-ui, Arial, sans-serif; }
+    body { margin: 0; padding: 24px; background: #f9fafb; color: #1f2937; }
+    .wrap { max-width: 1000px; margin: auto; }
+    h1 { margin: 0 0 16px; font-size: 2rem; color: #1e40af; }
+    p { margin: 0 0 24px; color: #4b5563; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+    button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; background: #1e40af; color: white; font-weight: 500; }
+    button:hover { background: #1e3a8a; }
+    button:disabled { background: #9ca3af; cursor: not-allowed; }
+    input, select { padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; background: white; color: #1f2937; }
+    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .menu-item { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center; }
+    .cart { background: #f3f4f6; padding: 16px; border-radius: 8px; margin-top: 24px; }
+    .cart h3 { margin: 0 0 16px; color: #1e40af; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { background: white; border: 1px solid #e5e7eb; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .section { margin-top: 32px; }
+    h2 { margin: 0 0 16px; color: #1e40af; }
+    .status { color: #16a34a; font-weight: 500; }
   </style>
 </head>
 <body>
-  <h1>Factory Method Pattern – Multi-App Demo</h1>
+  <div class="wrap">
+    <h1>Food Delivery App</h1>
+    <p>Order your favorite meals using our factory-powered app. Select items, add to cart, and place your order!</p>
 
-  <!-- Food Delivery App -->
-  <div class="app-block">
-    <h2>🍔 Food Delivery App</h2>
-    <button onclick="testUser('Customer')">Create Customer</button>
-    <button onclick="testUser('DeliveryPartner')">Create Delivery Partner</button>
-    <button onclick="testUser('Restaurant')">Create Restaurant</button>
-    <button onclick="testUser('Admin')">Create Admin</button>
+    <div class="section">
+      <h2>Menu</h2>
+      <div class="menu-grid" id="menu"></div>
+    </div>
+
+    <div class="section">
+      <h2>Your Cart</h2>
+      <div class="cart">
+        <ul id="cart"></ul>
+        <div class="row">
+          <p id="total">Total: ₹0</p>
+          <button id="placeOrderBtn" disabled>Place Order</button>
+          <button id="clearCartBtn" disabled>Clear Cart</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Order Status</h2>
+      <ul id="orderLog"></ul>
+    </div>
+
+    <div class="section">
+      <h2>User Role</h2>
+      <div class="row">
+        <select id="userType">
+          <option value="customer">Customer</option>
+          <option value="delivery">Delivery Partner</option>
+          <option value="restaurant">Restaurant</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button id="setUserBtn">Set Role</button>
+      </div>
+      <p>Current Role: <span id="currentRole" class="status">None</span></p>
+    </div>
   </div>
-
-  <!-- Banking App -->
-  <div class="app-block">
-    <h2>🏦 Banking App</h2>
-    <button onclick="testBank('SavingsAccount')">Create Savings Account</button>
-    <button onclick="testBank('CurrentAccount')">Create Current Account</button>
-    <button onclick="testBank('LoanAccount')">Create Loan Account</button>
-  </div>
-
-  <!-- E-commerce App -->
-  <div class="app-block">
-    <h2>🛒 E-commerce App</h2>
-    <button onclick="testEcom('Electronics')">Create Electronics</button>
-    <button onclick="testEcom('Clothing')">Create Clothing</button>
-    <button onclick="testEcom('Books')">Create Books</button>
-  </div>
-
-  <!-- Ride-Hailing App -->
-  <div class="app-block">
-    <h2>🚕 Ride-Hailing App</h2>
-    <button onclick="testRide('Mini')">Create Mini Ride</button>
-    <button onclick="testRide('Sedan')">Create Sedan Ride</button>
-    <button onclick="testRide('SUV')">Create SUV Ride</button>
-    <button onclick="testRide('Auto')">Create Auto Ride</button>
-  </div>
-
-  <h2>🖥 Output Log</h2>
-  <div id="output"></div>
 
   <script>
-    const log = msg => document.getElementById("output").innerHTML += msg + "<br>";
-
-    /* ---------------- FOOD DELIVERY ---------------- */
-    class Customer { details(){ return "Customer: Orders food."; } }
-    class DeliveryPartner { details(){ return "Delivery Partner: Delivers food."; } }
-    class Restaurant { details(){ return "Restaurant: Prepares food."; } }
-    class Admin { details(){ return "Admin: Manages platform."; } }
-    class UserFactory {
-      static create(type){
-        switch(type){
-          case "Customer": return new Customer();
-          case "DeliveryPartner": return new DeliveryPartner();
-          case "Restaurant": return new Restaurant();
-          case "Admin": return new Admin();
-          default: throw "Unknown User";
-        }
-      }
-    }
-    function testUser(type){
-      const u = UserFactory.create(type);
-      log("Food Delivery → " + u.details());
+    // === Abstract User ===
+    class User {
+      details() { throw new Error("details() must be implemented"); }
+      canOrder() { return false; }
     }
 
-    /* ---------------- BANKING ---------------- */
-    class SavingsAccount { details(){ return "Savings Account: Earns interest."; } }
-    class CurrentAccount { details(){ return "Current Account: For business transactions."; } }
-    class LoanAccount { details(){ return "Loan Account: Tracks loans."; } }
-    class BankFactory {
-      static create(type){
-        switch(type){
-          case "SavingsAccount": return new SavingsAccount();
-          case "CurrentAccount": return new CurrentAccount();
-          case "LoanAccount": return new LoanAccount();
-          default: throw "Unknown Account";
-        }
-      }
+    // === Concrete Users ===
+    class Customer extends User {
+      details() { return "Customer: places food orders."; }
+      canOrder() { return true; }
     }
-    function testBank(type){
-      const acc = BankFactory.create(type);
-      log("Banking → " + acc.details());
+    class DeliveryPartner extends User { details() { return "Delivery Partner: delivers food."; } }
+    class Restaurant extends User { details() { return "Restaurant: prepares food."; } }
+    class Admin extends User { details() { return "Admin: manages and moderates platform."; } }
+
+    // === User Factory ===
+    const UserFactory = {
+      create(type) {
+        const map = { customer: Customer, delivery: DeliveryPartner, restaurant: Restaurant, admin: Admin };
+        const Ctor = map[String(type).toLowerCase()];
+        if (!Ctor) throw new Error(`Unknown user type: ${type}`);
+        return new Ctor();
+      },
+    };
+
+    // === Abstract Product ===
+    class Meal {
+      description() { throw new Error("description() must be implemented"); }
+      price() { return 0; }
     }
 
-    /* ---------------- E-COMMERCE ---------------- */
-    class Electronics { details(){ return "Electronics: Gadgets & Devices."; } }
-    class Clothing { details(){ return "Clothing: Apparel & Fashion."; } }
-    class Books { details(){ return "Books: Novels & Study Material."; } }
-    class EcomFactory {
-      static create(type){
-        switch(type){
-          case "Electronics": return new Electronics();
-          case "Clothing": return new Clothing();
-          case "Books": return new Books();
-          default: throw "Unknown Product";
-        }
-      }
+    // === Concrete Products ===
+    class Pizza extends Meal {
+      description() { return "Pizza with cheese & toppings"; }
+      price() { return 250; }
     }
-    function testEcom(type){
-      const item = EcomFactory.create(type);
-      log("E-commerce → " + item.details());
+    class Burger extends Meal {
+      description() { return "Burger with patty & veggies"; }
+      price() { return 150; }
+    }
+    class Salad extends Meal {
+      description() { return "Healthy green salad"; }
+      price() { return 120; }
+    }
+    class Drink extends Meal {
+      description() { return "Cold refreshing drink"; }
+      price() { return 60; }
     }
 
-    /* ---------------- RIDE-HAILING ---------------- */
-    class Mini { details(){ return "Mini Ride: Budget friendly."; } }
-    class Sedan { details(){ return "Sedan Ride: Comfortable seating."; } }
-    class SUV { details(){ return "SUV Ride: Spacious and premium."; } }
-    class Auto { details(){ return "Auto Ride: Affordable short trips."; } }
-    class RideFactory {
-      static create(type){
-        switch(type){
-          case "Mini": return new Mini();
-          case "Sedan": return new Sedan();
-          case "SUV": return new SUV();
-          case "Auto": return new Auto();
-          default: throw "Unknown Ride";
-        }
+    // === Meal Factory ===
+    const MealFactory = {
+      create(type) {
+        const map = { pizza: Pizza, burger: Burger, salad: Salad, drink: Drink };
+        const Ctor = map[String(type).toLowerCase()];
+        if (!Ctor) throw new Error(`Unknown meal type: ${type}`);
+        return new Ctor();
+      },
+    };
+
+    // === App State ===
+    let currentUser = null;
+    let cart = [];
+
+    // === DOM Elements ===
+    const menuEl = document.getElementById('menu');
+    const cartEl = document.getElementById('cart');
+    const orderLogEl = document.getElementById('orderLog');
+    const totalEl = document.getElementById('total');
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    const clearCartBtn = document.getElementById('clearCartBtn');
+    const userTypeSelect = document.getElementById('userType');
+    const setUserBtn = document.getElementById('setUserBtn');
+    const currentRoleEl = document.getElementById('currentRole');
+
+    // === Logging Helper ===
+    function log(msg, el) {
+      const li = document.createElement('li');
+      li.textContent = msg;
+      el.prepend(li);
+    }
+
+    // === Menu Setup ===
+    const meals = ['pizza', 'burger', 'salad', 'drink'];
+    meals.forEach(type => {
+      const meal = MealFactory.create(type);
+      const div = document.createElement('div');
+      div.className = 'menu-item';
+      div.innerHTML = `
+        <h3>${meal.description()}</h3>
+        <p>₹${meal.price()}</p>
+        <button data-type="${type}" ${!currentUser?.canOrder() ? 'disabled' : ''}>Add to Cart</button>
+      `;
+      menuEl.appendChild(div);
+    });
+
+    // === Event Listeners ===
+    menuEl.addEventListener('click', e => {
+      if (e.target.tagName === 'BUTTON' && currentUser?.canOrder()) {
+        const meal = MealFactory.create(e.target.dataset.type);
+        cart.push(meal);
+        updateCart();
+        log(`Added ${meal.description()} to cart`, orderLogEl);
       }
+    });
+
+    placeOrderBtn.addEventListener('click', () => {
+      if (cart.length && currentUser?.canOrder()) {
+        log(`Order placed: ${cart.map(m => m.description()).join(', ')} – Total: ₹${cart.reduce((sum, m) => sum + m.price(), 0)}`, orderLogEl);
+        cart = [];
+        updateCart();
+      }
+    });
+
+    clearCartBtn.addEventListener('click', () => {
+      cart = [];
+      updateCart();
+      log('Cart cleared', orderLogEl);
+    });
+
+    setUserBtn.addEventListener('click', () => {
+      try {
+        currentUser = UserFactory.create(userTypeSelect.value);
+        currentRoleEl.textContent = currentUser.details();
+        updateCart();
+        log(`User set to: ${currentUser.details()}`, orderLogEl);
+        menuEl.querySelectorAll('button').forEach(btn => {
+          btn.disabled = !currentUser.canOrder();
+        });
+      } catch (e) {
+        log(e.message, orderLogEl);
+      }
+    });
+
+    // === Cart Update ===
+    function updateCart() {
+      cartEl.innerHTML = '';
+      const total = cart.reduce((sum, meal) => sum + m.price(), 0);
+      cart.forEach((meal, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          ${meal.description()} – ₹${meal.price()}
+          <button data-index="${index}">Remove</button>
+        `;
+        cartEl.appendChild(li);
+      });
+      totalEl.textContent = `Total: ₹${total}`;
+      placeOrderBtn.disabled = !cart.length || !currentUser?.canOrder();
+      clearCartBtn.disabled = !cart.length;
     }
-    function testRide(type){
-      const r = RideFactory.create(type);
-      log("Ride-Hailing → " + r.details());
-    }
+
+    cartEl.addEventListener('click', e => {
+      if (e.target.tagName === 'BUTTON') {
+        const index = parseInt(e.target.dataset.index);
+        const removed = cart.splice(index, 1)[0];
+        updateCart();
+        log(`Removed ${removed.description()} from cart`, orderLogEl);
+      }
+    });
   </script>
 </body>
 </html>
