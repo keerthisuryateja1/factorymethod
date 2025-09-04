@@ -3,134 +3,437 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Food Delivery App – Factory Method</title>
+  <title>Food Delivery App – Factory Method Pattern</title>
   <style>
-    :root { font-family: system-ui, Arial, sans-serif; }
-    body { margin: 0; padding: 24px; background: #f9fafb; color: #1f2937; }
-    .wrap { max-width: 1000px; margin: auto; }
-    h1 { margin: 0 0 16px; font-size: 2rem; color: #1e40af; }
-    p { margin: 0 0 24px; color: #4b5563; }
-    .row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
-    button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; background: #1e40af; color: white; font-weight: 500; }
-    button:hover { background: #1e3a8a; }
-    button:disabled { background: #9ca3af; cursor: not-allowed; }
-    input, select { padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; background: white; color: #1f2937; }
-    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .menu-item { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center; }
-    .cart { background: #f3f4f6; padding: 16px; border-radius: 8px; margin-top: 24px; }
-    .cart h3 { margin: 0 0 16px; color: #1e40af; }
-    ul { list-style: none; padding: 0; margin: 0; }
-    li { background: white; border: 1px solid #e5e7eb; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .section { margin-top: 32px; }
-    h2 { margin: 0 0 16px; color: #1e40af; }
-    .status { color: #16a34a; font-weight: 500; }
+    :root { 
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body { 
+      margin: 0; 
+      padding: 24px; 
+      background: #f9fafb; 
+      color: #1f2937;
+      line-height: 1.6;
+    }
+    
+    .wrap { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+    }
+    
+    h1 { 
+      margin: 0 0 16px; 
+      font-size: 2.5rem; 
+      color: #1e40af;
+      text-align: center;
+    }
+    
+    p { 
+      margin: 0 0 24px; 
+      color: #4b5563;
+      text-align: center;
+    }
+    
+    .row { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 12px; 
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    
+    button { 
+      padding: 12px 20px; 
+      border: none; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      background: #1e40af; 
+      color: white; 
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+      font-size: 14px;
+    }
+    
+    button:hover:not(:disabled) { 
+      background: #1e3a8a; 
+    }
+    
+    button:disabled { 
+      background: #9ca3af; 
+      cursor: not-allowed; 
+      opacity: 0.6;
+    }
+    
+    input, select { 
+      padding: 12px; 
+      border-radius: 8px; 
+      border: 1px solid #d1d5db; 
+      background: white; 
+      color: #1f2937;
+      font-size: 14px;
+    }
+    
+    .menu-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+      gap: 20px; 
+      margin-bottom: 32px; 
+    }
+    
+    .menu-item { 
+      background: white; 
+      border: 1px solid #e5e7eb; 
+      border-radius: 12px; 
+      padding: 20px; 
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .menu-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .menu-item h3 {
+      margin: 0 0 8px;
+      color: #1f2937;
+      font-size: 1.2rem;
+    }
+    
+    .menu-item .price {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #059669;
+      margin: 8px 0 16px;
+    }
+    
+    .cart { 
+      background: white; 
+      padding: 24px; 
+      border-radius: 12px; 
+      margin-top: 32px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cart h3 { 
+      margin: 0 0 20px; 
+      color: #1e40af;
+      font-size: 1.5rem;
+    }
+    
+    .cart-list { 
+      list-style: none; 
+      padding: 0; 
+      margin: 0 0 20px; 
+    }
+    
+    .cart-item { 
+      background: #f9fafb; 
+      border: 1px solid #e5e7eb; 
+      padding: 16px; 
+      border-radius: 8px; 
+      margin-bottom: 12px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+    }
+    
+    .cart-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .cart-item-info {
+      flex: 1;
+    }
+    
+    .cart-item-name {
+      font-weight: 500;
+      color: #1f2937;
+    }
+    
+    .cart-item-price {
+      color: #059669;
+      font-weight: 600;
+    }
+    
+    .section { 
+      margin-top: 48px; 
+    }
+    
+    h2 { 
+      margin: 0 0 20px; 
+      color: #1e40af;
+      font-size: 1.8rem;
+    }
+    
+    .status { 
+      color: #16a34a; 
+      font-weight: 600; 
+    }
+    
+    .total-section {
+      background: #f3f4f6;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .total-amount {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #1f2937;
+    }
+    
+    .order-log {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .order-log li {
+      background: white;
+      border: 1px solid #e5e7eb;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .order-log li:first-child {
+      border-left: 4px solid #10b981;
+    }
+    
+    .user-section {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .empty-cart {
+      text-align: center;
+      color: #6b7280;
+      font-style: italic;
+      padding: 20px;
+    }
+    
+    @media (max-width: 768px) {
+      .menu-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      button {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Food Delivery App</h1>
-    <p>Order your favorite meals using our factory-powered app. Select items, add to cart, and place your order!</p>
+    <h1>🍕 Food Delivery App</h1>
+    <p>Order your favorite meals using our factory-powered delivery system. Select items, add to cart, and place your order!</p>
 
     <div class="section">
-      <h2>Menu</h2>
+      <h2>📋 Menu</h2>
       <div class="menu-grid" id="menu"></div>
     </div>
 
     <div class="section">
-      <h2>Your Cart</h2>
+      <h2>🛒 Your Cart</h2>
       <div class="cart">
-        <ul id="cart"></ul>
+        <h3>Cart Items</h3>
+        <ul class="cart-list" id="cart"></ul>
+        <div class="total-section">
+          <p class="total-amount" id="total">Total: ₹0</p>
+        </div>
         <div class="row">
-          <p id="total">Total: ₹0</p>
-          <button id="placeOrderBtn" disabled>Place Order</button>
-          <button id="clearCartBtn" disabled>Clear Cart</button>
+          <button id="placeOrderBtn" disabled>🚀 Place Order</button>
+          <button id="clearCartBtn" disabled>🗑️ Clear Cart</button>
         </div>
       </div>
     </div>
 
     <div class="section">
-      <h2>Order Status</h2>
-      <ul id="orderLog"></ul>
+      <h2>📦 Order Status</h2>
+      <ul class="order-log" id="orderLog"></ul>
     </div>
 
     <div class="section">
-      <h2>User Role</h2>
-      <div class="row">
-        <select id="userType">
-          <option value="customer">Customer</option>
-          <option value="delivery">Delivery Partner</option>
-          <option value="restaurant">Restaurant</option>
-          <option value="admin">Admin</option>
-        </select>
-        <button id="setUserBtn">Set Role</button>
+      <h2>👤 User Role</h2>
+      <div class="user-section">
+        <div class="row">
+          <select id="userType">
+            <option value="">Select Role</option>
+            <option value="customer">Customer</option>
+            <option value="delivery">Delivery Partner</option>
+            <option value="restaurant">Restaurant</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button id="setUserBtn">Set Role</button>
+        </div>
+        <p>Current Role: <span id="currentRole" class="status">None Selected</span></p>
       </div>
-      <p>Current Role: <span id="currentRole" class="status">None</span></p>
     </div>
   </div>
 
   <script>
-    // === Abstract User ===
+    // === Abstract User Class ===
     class User {
-      details() { throw new Error("details() must be implemented"); }
-      canOrder() { return false; }
+      details() { 
+        throw new Error("details() method must be implemented by concrete classes"); 
+      }
+      canOrder() { 
+        return false; 
+      }
     }
 
-    // === Concrete Users ===
+    // === Concrete User Classes ===
     class Customer extends User {
-      details() { return "Customer: places food orders."; }
-      canOrder() { return true; }
+      details() { 
+        return "Customer: Can browse menu and place food orders"; 
+      }
+      canOrder() { 
+        return true; 
+      }
     }
-    class DeliveryPartner extends User { details() { return "Delivery Partner: delivers food."; } }
-    class Restaurant extends User { details() { return "Restaurant: prepares food."; } }
-    class Admin extends User { details() { return "Admin: manages and moderates platform."; } }
+
+    class DeliveryPartner extends User { 
+      details() { 
+        return "Delivery Partner: Responsible for delivering food to customers"; 
+      } 
+    }
+
+    class Restaurant extends User { 
+      details() { 
+        return "Restaurant: Prepares and manages food items"; 
+      } 
+    }
+
+    class Admin extends User { 
+      details() { 
+        return "Admin: Manages platform, users, and system operations"; 
+      } 
+    }
 
     // === User Factory ===
     const UserFactory = {
       create(type) {
-        const map = { customer: Customer, delivery: DeliveryPartner, restaurant: Restaurant, admin: Admin };
-        const Ctor = map[String(type).toLowerCase()];
-        if (!Ctor) throw new Error(`Unknown user type: ${type}`);
-        return new Ctor();
-      },
+        const userTypes = {
+          customer: Customer,
+          delivery: DeliveryPartner,
+          restaurant: Restaurant,
+          admin: Admin
+        };
+        
+        const UserClass = userTypes[String(type).toLowerCase()];
+        if (!UserClass) {
+          throw new Error(`Unknown user type: ${type}`);
+        }
+        return new UserClass();
+      }
     };
 
-    // === Abstract Product ===
+    // === Abstract Meal Class ===
     class Meal {
-      description() { throw new Error("description() must be implemented"); }
-      price() { return 0; }
+      description() { 
+        throw new Error("description() method must be implemented by concrete classes"); 
+      }
+      price() { 
+        return 0; 
+      }
+      emoji() {
+        return "🍽️";
+      }
     }
 
-    // === Concrete Products ===
+    // === Concrete Meal Classes ===
     class Pizza extends Meal {
-      description() { return "Pizza with cheese & toppings"; }
-      price() { return 250; }
+      description() { 
+        return "Delicious Pizza with fresh cheese & premium toppings"; 
+      }
+      price() { 
+        return 250; 
+      }
+      emoji() {
+        return "🍕";
+      }
     }
+
     class Burger extends Meal {
-      description() { return "Burger with patty & veggies"; }
-      price() { return 150; }
+      description() { 
+        return "Juicy Burger with crispy patty & fresh vegetables"; 
+      }
+      price() { 
+        return 150; 
+      }
+      emoji() {
+        return "🍔";
+      }
     }
+
     class Salad extends Meal {
-      description() { return "Healthy green salad"; }
-      price() { return 120; }
+      description() { 
+        return "Healthy Green Salad with organic ingredients"; 
+      }
+      price() { 
+        return 120; 
+      }
+      emoji() {
+        return "🥗";
+      }
     }
+
     class Drink extends Meal {
-      description() { return "Cold refreshing drink"; }
-      price() { return 60; }
+      description() { 
+        return "Cold Refreshing Drink - perfect companion"; 
+      }
+      price() { 
+        return 60; 
+      }
+      emoji() {
+        return "🥤";
+      }
     }
 
     // === Meal Factory ===
     const MealFactory = {
       create(type) {
-        const map = { pizza: Pizza, burger: Burger, salad: Salad, drink: Drink };
-        const Ctor = map[String(type).toLowerCase()];
-        if (!Ctor) throw new Error(`Unknown meal type: ${type}`);
-        return new Ctor();
-      },
+        const mealTypes = {
+          pizza: Pizza,
+          burger: Burger,
+          salad: Salad,
+          drink: Drink
+        };
+        
+        const MealClass = mealTypes[String(type).toLowerCase()];
+        if (!MealClass) {
+          throw new Error(`Unknown meal type: ${type}`);
+        }
+        return new MealClass();
+      }
     };
 
-    // === App State ===
+    // === Application State ===
     let currentUser = null;
     let cart = [];
+    let orderCounter = 1;
 
     // === DOM Elements ===
     const menuEl = document.getElementById('menu');
@@ -143,90 +446,201 @@
     const setUserBtn = document.getElementById('setUserBtn');
     const currentRoleEl = document.getElementById('currentRole');
 
-    // === Logging Helper ===
-    function log(msg, el) {
-      const li = document.createElement('li');
-      li.textContent = msg;
-      el.prepend(li);
+    // === Utility Functions ===
+    function logMessage(message, element = orderLogEl) {
+      const listItem = document.createElement('li');
+      const timestamp = new Date().toLocaleTimeString();
+      listItem.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+      element.prepend(listItem);
     }
 
-    // === Menu Setup ===
-    const meals = ['pizza', 'burger', 'salad', 'drink'];
-    meals.forEach(type => {
-      const meal = MealFactory.create(type);
-      const div = document.createElement('div');
-      div.className = 'menu-item';
-      div.innerHTML = `
-        <h3>${meal.description()}</h3>
-        <p>₹${meal.price()}</p>
-        <button data-type="${type}" ${!currentUser?.canOrder() ? 'disabled' : ''}>Add to Cart</button>
-      `;
-      menuEl.appendChild(div);
-    });
+    function formatCurrency(amount) {
+      return `₹${amount.toLocaleString()}`;
+    }
 
-    // === Event Listeners ===
-    menuEl.addEventListener('click', e => {
-      if (e.target.tagName === 'BUTTON' && currentUser?.canOrder()) {
-        const meal = MealFactory.create(e.target.dataset.type);
+    // === Menu Initialization ===
+    function initializeMenu() {
+      const mealTypes = ['pizza', 'burger', 'salad', 'drink'];
+      
+      mealTypes.forEach(type => {
+        try {
+          const meal = MealFactory.create(type);
+          const menuItem = document.createElement('div');
+          menuItem.className = 'menu-item';
+          menuItem.innerHTML = `
+            <div>${meal.emoji()}</div>
+            <h3>${meal.description()}</h3>
+            <p class="price">${formatCurrency(meal.price())}</p>
+            <button data-type="${type}" ${!currentUser?.canOrder() ? 'disabled' : ''}>
+              Add to Cart
+            </button>
+          `;
+          menuEl.appendChild(menuItem);
+        } catch (error) {
+          console.error(`Error creating meal type ${type}:`, error);
+        }
+      });
+    }
+
+    // === Cart Management ===
+    function updateCart() {
+      // Clear existing cart display
+      cartEl.innerHTML = '';
+      
+      if (cart.length === 0) {
+        cartEl.innerHTML = '<li class="empty-cart">Your cart is empty</li>';
+        totalEl.textContent = 'Total: ₹0';
+        placeOrderBtn.disabled = true;
+        clearCartBtn.disabled = true;
+        return;
+      }
+
+      // Calculate total
+      const total = cart.reduce((sum, meal) => sum + meal.price(), 0);
+      
+      // Render cart items
+      cart.forEach((meal, index) => {
+        const cartItem = document.createElement('li');
+        cartItem.className = 'cart-item';
+        cartItem.innerHTML = `
+          <div class="cart-item-info">
+            <div class="cart-item-name">${meal.emoji()} ${meal.description()}</div>
+            <div class="cart-item-price">${formatCurrency(meal.price())}</div>
+          </div>
+          <button data-index="${index}" title="Remove item">❌</button>
+        `;
+        cartEl.appendChild(cartItem);
+      });
+
+      // Update total and button states
+      totalEl.textContent = `Total: ${formatCurrency(total)}`;
+      placeOrderBtn.disabled = !currentUser?.canOrder();
+      clearCartBtn.disabled = false;
+    }
+
+    function addToCart(mealType) {
+      if (!currentUser?.canOrder()) {
+        logMessage('❌ Please select a Customer role to add items to cart');
+        return;
+      }
+
+      try {
+        const meal = MealFactory.create(mealType);
         cart.push(meal);
         updateCart();
-        log(`Added ${meal.description()} to cart`, orderLogEl);
+        logMessage(`✅ Added ${meal.emoji()} ${meal.description()} to cart`);
+      } catch (error) {
+        logMessage(`❌ Error adding item to cart: ${error.message}`);
       }
-    });
-
-    placeOrderBtn.addEventListener('click', () => {
-      if (cart.length && currentUser?.canOrder()) {
-        log(`Order placed: ${cart.map(m => m.description()).join(', ')} – Total: ₹${cart.reduce((sum, m) => sum + m.price(), 0)}`, orderLogEl);
-        cart = [];
-        updateCart();
-      }
-    });
-
-    clearCartBtn.addEventListener('click', () => {
-      cart = [];
-      updateCart();
-      log('Cart cleared', orderLogEl);
-    });
-
-    setUserBtn.addEventListener('click', () => {
-      try {
-        currentUser = UserFactory.create(userTypeSelect.value);
-        currentRoleEl.textContent = currentUser.details();
-        updateCart();
-        log(`User set to: ${currentUser.details()}`, orderLogEl);
-        menuEl.querySelectorAll('button').forEach(btn => {
-          btn.disabled = !currentUser.canOrder();
-        });
-      } catch (e) {
-        log(e.message, orderLogEl);
-      }
-    });
-
-    // === Cart Update ===
-    function updateCart() {
-      cartEl.innerHTML = '';
-      const total = cart.reduce((sum, meal) => sum + m.price(), 0);
-      cart.forEach((meal, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          ${meal.description()} – ₹${meal.price()}
-          <button data-index="${index}">Remove</button>
-        `;
-        cartEl.appendChild(li);
-      });
-      totalEl.textContent = `Total: ₹${total}`;
-      placeOrderBtn.disabled = !cart.length || !currentUser?.canOrder();
-      clearCartBtn.disabled = !cart.length;
     }
 
-    cartEl.addEventListener('click', e => {
-      if (e.target.tagName === 'BUTTON') {
-        const index = parseInt(e.target.dataset.index);
-        const removed = cart.splice(index, 1)[0];
+    function removeFromCart(index) {
+      if (index >= 0 && index < cart.length) {
+        const removedMeal = cart.splice(index, 1)[0];
         updateCart();
-        log(`Removed ${removed.description()} from cart`, orderLogEl);
+        logMessage(`🗑️ Removed ${removedMeal.emoji()} ${removedMeal.description()} from cart`);
+      }
+    }
+
+    function clearCart() {
+      if (cart.length > 0) {
+        cart = [];
+        updateCart();
+        logMessage('🗑️ Cart cleared successfully');
+      }
+    }
+
+    function placeOrder() {
+      if (cart.length === 0) {
+        logMessage('❌ Cannot place order: Cart is empty');
+        return;
+      }
+
+      if (!currentUser?.canOrder()) {
+        logMessage('❌ Cannot place order: Only customers can place orders');
+        return;
+      }
+
+      const total = cart.reduce((sum, meal) => sum + meal.price(), 0);
+      const orderItems = cart.map(meal => `${meal.emoji()} ${meal.description()}`).join(', ');
+      
+      logMessage(`🚀 Order #${orderCounter} placed successfully! Items: ${orderItems} | Total: ${formatCurrency(total)}`);
+      
+      orderCounter++;
+      cart = [];
+      updateCart();
+    }
+
+    // === User Management ===
+    function setUserRole() {
+      const selectedRole = userTypeSelect.value.trim();
+      
+      if (!selectedRole) {
+        logMessage('❌ Please select a valid user role');
+        return;
+      }
+
+      try {
+        currentUser = UserFactory.create(selectedRole);
+        currentRoleEl.textContent = currentUser.details();
+        
+        // Update menu buttons based on user permissions
+        updateMenuButtons();
+        updateCart();
+        
+        logMessage(`👤 User role set: ${currentUser.details()}`);
+      } catch (error) {
+        logMessage(`❌ Error setting user role: ${error.message}`);
+        currentRoleEl.textContent = 'Error - Invalid Role';
+      }
+    }
+
+    function updateMenuButtons() {
+      const menuButtons = menuEl.querySelectorAll('button');
+      menuButtons.forEach(button => {
+        button.disabled = !currentUser?.canOrder();
+      });
+    }
+
+    // === Event Listeners ===
+    menuEl.addEventListener('click', (event) => {
+      if (event.target.tagName === 'BUTTON' && event.target.dataset.type) {
+        addToCart(event.target.dataset.type);
       }
     });
+
+    cartEl.addEventListener('click', (event) => {
+      if (event.target.tagName === 'BUTTON' && event.target.dataset.index !== undefined) {
+        const index = parseInt(event.target.dataset.index, 10);
+        removeFromCart(index);
+      }
+    });
+
+    placeOrderBtn.addEventListener('click', placeOrder);
+    clearCartBtn.addEventListener('click', clearCart);
+    setUserBtn.addEventListener('click', setUserRole);
+
+    // Handle Enter key for user role selection
+    userTypeSelect.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        setUserRole();
+      }
+    });
+
+    // === Application Initialization ===
+    function initializeApp() {
+      logMessage('🎉 Food Delivery App initialized successfully!');
+      logMessage('ℹ️ Please select a user role to get started');
+      initializeMenu();
+      updateCart();
+    }
+
+    // Initialize the application when DOM is loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+      initializeApp();
+    }
   </script>
 </body>
 </html>
