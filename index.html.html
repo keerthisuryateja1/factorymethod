@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Factory Method – Food Delivery App</title>
+  <style>
+    :root { font-family: system-ui, Arial, sans-serif; }
+    body { margin: 0; padding: 32px; background: #0f172a; color: #e5e7eb; }
+    .wrap { max-width: 900px; margin: auto; }
+    h1 { margin: 0 0 8px; }
+    p  { margin: 0 0 16px; color: #cbd5e1; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    button { padding: 10px 14px; border: 0; border-radius: 12px; cursor: pointer; background: #1f2937; color: #e5e7eb; }
+    button:hover { filter: brightness(1.15); }
+    input, select { padding: 10px 12px; border-radius: 12px; border: 1px solid #334155; background: #0b1220; color: #e5e7eb; }
+    ul { list-style: none; padding: 0; margin-top: 16px; }
+    li { background: #111827; border: 1px solid #334155; padding: 10px 12px; border-radius: 12px; margin-bottom: 8px; }
+    code { background: #111827; padding: 2px 6px; border-radius: 8px; }
+    .section { margin-top: 32px; }
+    h2 { margin-top: 0; color: #facc15; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Factory Method – Food Delivery App</h1>
+    <p>This demo shows how factories dynamically create <strong>Users</strong> and <strong>Products</strong> without exposing <code>new</code> directly.</p>
+
+    <div class="section">
+      <h2>User Factory</h2>
+      <div class="row">
+        <button data-type="customer">Create Customer</button>
+        <button data-type="delivery">Create Delivery Partner</button>
+        <button data-type="restaurant">Create Restaurant</button>
+        <button data-type="admin">Create Admin (new role)</button>
+      </div>
+
+      <div class="row">
+        <input id="typeInput" placeholder="Try custom type e.g. customer" />
+        <button id="createBtn">Create via input</button>
+        <button id="clearBtn">Clear log</button>
+      </div>
+
+      <ul id="log"></ul>
+    </div>
+
+    <div class="section">
+      <h2>Product Factory (Meals)</h2>
+      <div class="row">
+        <select id="mealSelect">
+          <option value="pizza">Pizza</option>
+          <option value="burger">Burger</option>
+          <option value="salad">Salad</option>
+          <option value="drink">Drink</option>
+        </select>
+        <button id="orderBtn">Order Meal</button>
+      </div>
+      <ul id="mealLog"></ul>
+    </div>
+  </div>
+
+  <script>
+    // === Abstract User ===
+    class User { details() { throw new Error("details() must be implemented"); } }
+
+    // === Concrete Users ===
+    class Customer extends User { details() { return "Customer: places food orders."; } }
+    class DeliveryPartner extends User { details() { return "Delivery Partner: delivers food."; } }
+    class Restaurant extends User { details() { return "Restaurant: prepares food."; } }
+    class Admin extends User { details() { return "Admin: manages and moderates platform."; } }
+
+    // === User Factory ===
+    const UserFactory = {
+      create(type) {
+        const map = { customer: Customer, delivery: DeliveryPartner, restaurant: Restaurant, admin: Admin };
+        const Ctor = map[String(type).toLowerCase()];
+        if (!Ctor) throw new Error(`Unknown user type: ${type}`);
+        return new Ctor();
+      },
+    };
+
+    // === Abstract Product ===
+    class Meal { description() { throw new Error("description() must be implemented"); } price() { return 0; } }
+
+    // === Concrete Products ===
+    class Pizza extends Meal { description() { return "Pizza with cheese & toppings."; } price() { return 250; } }
+    class Burger extends Meal { description() { return "Burger with patty & veggies."; } price() { return 150; } }
+    class Salad extends Meal { description() { return "Healthy green salad."; } price() { return 120; } }
+    class Drink extends Meal { description() { return "Cold refreshing drink."; } price() { return 60; } }
+
+    // === Meal Factory ===
+    const MealFactory = {
+      create(type) {
+        const map = { pizza: Pizza, burger: Burger, salad: Salad, drink: Drink };
+        const Ctor = map[String(type).toLowerCase()];
+        if (!Ctor) throw new Error(`Unknown meal type: ${type}`);
+        return new Ctor();
+      },
+    };
+
+    // === Logging Helpers ===
+    function log(msg, el) {
+      const li = document.createElement('li');
+      li.textContent = msg;
+      el.prepend(li);
+    }
+
+    // === User Section ===
+    const logEl = document.getElementById('log');
+    const typeInput = document.getElementById('typeInput');
+
+    document.querySelectorAll('button[data-type]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        try {
+          const user = UserFactory.create(btn.dataset.type);
+          log(user.details(), logEl);
+        } catch (e) { log(e.message, logEl); }
+      });
+    });
+
+    document.getElementById('createBtn').addEventListener('click', () => {
+      try {
+        const user = UserFactory.create(typeInput.value.trim());
+        log(user.details(), logEl);
+      } catch (e) { log(e.message, logEl); }
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      logEl.innerHTML = '';
+    });
+
+    // === Meal Section ===
+    const mealLogEl = document.getElementById('mealLog');
+    const mealSelect = document.getElementById('mealSelect');
+
+    document.getElementById('orderBtn').addEventListener('click', () => {
+      try {
+        const meal = MealFactory.create(mealSelect.value);
+        log(`${meal.description()} Price: ₹${meal.price()}`, mealLogEl);
+      } catch (e) { log(e.message, mealLogEl); }
+    });
+  </script>
+</body>
+</html>
