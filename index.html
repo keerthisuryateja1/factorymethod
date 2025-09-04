@@ -225,6 +225,12 @@
       padding: 20px;
     }
     
+    .order-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+    }
+    
     @media (max-width: 768px) {
       .menu-grid {
         grid-template-columns: 1fr;
@@ -271,8 +277,13 @@
     </div>
 
     <div class="section">
-      <h2>📦 Order Status</h2>
+      <h2>📦 Orders</h2>
       <ul class="order-log" id="orderLog"></ul>
+    </div>
+
+    <div class="section">
+      <h2>📝 Event Log</h2>
+      <ul class="order-log" id="eventLog"></ul>
     </div>
 
     <div class="section">
@@ -316,19 +327,19 @@
 
     class DeliveryPartner extends User { 
       details() { 
-        return "Delivery Partner: Responsible for delivering food to customers"; 
+        return "Delivery Partner: Responsible for picking up and delivering food to customers"; 
       } 
     }
 
     class Restaurant extends User { 
       details() { 
-        return "Restaurant: Prepares and manages food items"; 
+        return "Restaurant: Prepares and manages food items for orders"; 
       } 
     }
 
     class Admin extends User { 
       details() { 
-        return "Admin: Manages platform, users, and system operations"; 
+        return "Admin: Manages platform, can cancel orders and monitor operations"; 
       } 
     }
 
@@ -433,12 +444,14 @@
     // === Application State ===
     let currentUser = null;
     let cart = [];
+    let orders = [];
     let orderCounter = 1;
 
     // === DOM Elements ===
     const menuEl = document.getElementById('menu');
     const cartEl = document.getElementById('cart');
     const orderLogEl = document.getElementById('orderLog');
+    const eventLogEl = document.getElementById('eventLog');
     const totalEl = document.getElementById('total');
     const placeOrderBtn = document.getElementById('placeOrderBtn');
     const clearCartBtn = document.getElementById('clearCartBtn');
@@ -447,15 +460,26 @@
     const currentRoleEl = document.getElementById('currentRole');
 
     // === Utility Functions ===
-    function logMessage(message, element = orderLogEl) {
+    function logMessage(message) {
       const listItem = document.createElement('li');
       const timestamp = new Date().toLocaleTimeString();
       listItem.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
-      element.prepend(listItem);
+      eventLogEl.prepend(listItem);
     }
 
     function formatCurrency(amount) {
       return `₹${amount.toLocaleString()}`;
+    }
+
+    function getStatusEmoji(status) {
+      const emojis = {
+        'Placed': '📦',
+        'Prepared': '🍲',
+        'Out for Delivery': '🚚',
+        'Delivered': '✅',
+        'Cancelled': '❌'
+      };
+      return emojis[status] || '❓';
     }
 
     // === Menu Initialization ===
@@ -514,8 +538,8 @@
 
       // Update total and button states
       totalEl.textContent = `Total: ${formatCurrency(total)}`;
-      placeOrderBtn.disabled = !currentUser?.canOrder();
-      clearCartBtn.disabled = false;
+      placeOrderBtn.disabled = !currentUser?.canOrder() || cart.length === 0;
+      clearCartBtn.disabled = cart.length === 0;
     }
 
     function addToCart(mealType) {
@@ -562,13 +586,81 @@
       }
 
       const total = cart.reduce((sum, meal) => sum + meal.price(), 0);
-      const orderItems = cart.map(meal => `${meal.emoji()} ${meal.description()}`).join(', ');
-      
-      logMessage(`🚀 Order #${orderCounter} placed successfully! Items: ${orderItems} | Total: ${formatCurrency(total)}`);
-      
+      const order = {
+        id: orderCounter,
+        items: cart.map(meal => ({
+          description: meal.description(),
+          price: meal.price(),
+          emoji: meal.emoji()
+        })),
+        total,
+        status: 'Placed',
+        timestamp: new Date()
+      };
+      orders.push(order);
+      logMessage(`🚀 Order #${orderCounter} placed successfully! Items: ${order.items.map(i => `${i.emoji} ${i.description}`).join(', ')} | Total: ${formatCurrency(total)}`);
       orderCounter++;
       cart = [];
       updateCart();
+      updateOrdersDisplay();
+    }
+
+    // === Orders Display ===
+    function updateOrdersDisplay() {
+      orderLogEl.innerHTML = '';
+      if (orders.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'empty-cart';
+        li.textContent = 'No orders yet';
+        orderLogEl.appendChild(li);
+        return;
+      }
+      // Render in reverse order (latest first)
+      [...orders].reverse().forEach(order => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <strong>Order #${order.id}</strong> - Status: <span class="status">${getStatusEmoji(order.status)} ${order.status}</span><br>
+          Items: ${order.items.map(i => `${i.emoji} ${i.description}`).join(', ')}<br>
+          Total: ${formatCurrency(order.total)}<br>
+          Time: ${order.timestamp.toLocaleString()}
+        `;
+        // Add action buttons based on role and status
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'order-actions';
+        if (currentUser instanceof Restaurant && order.status === 'Placed') {
+          const btn = document.createElement('button');
+          btn.textContent = '🍲 Prepare Order';
+          btn.dataset.action = 'prepare';
+          btn.dataset.id = order.id;
+          actionsDiv.appendChild(btn);
+        }
+        if (currentUser instanceof DeliveryPartner) {
+          if (order.status === 'Prepared') {
+            const btn = document.createElement('button');
+            btn.textContent = '🚚 Pick Up';
+            btn.dataset.action = 'pickup';
+            btn.dataset.id = order.id;
+            actionsDiv.appendChild(btn);
+          } else if (order.status === 'Out for Delivery') {
+            const btn = document.createElement('button');
+            btn.textContent = '✅ Deliver';
+            btn.dataset.action = 'deliver';
+            btn.dataset.id = order.id;
+            actionsDiv.appendChild(btn);
+          }
+        }
+        if (currentUser instanceof Admin && ['Placed', 'Prepared', 'Out for Delivery'].includes(order.status)) {
+          const btn = document.createElement('button');
+          btn.textContent = '❌ Cancel Order';
+          btn.dataset.action = 'cancel';
+          btn.dataset.id = order.id;
+          actionsDiv.appendChild(btn);
+        }
+        if (actionsDiv.hasChildNodes()) {
+          li.appendChild(actionsDiv);
+        }
+        orderLogEl.appendChild(li);
+      });
     }
 
     // === User Management ===
@@ -587,6 +679,7 @@
         // Update menu buttons based on user permissions
         updateMenuButtons();
         updateCart();
+        updateOrdersDisplay();
         
         logMessage(`👤 User role set: ${currentUser.details()}`);
       } catch (error) {
@@ -616,6 +709,30 @@
       }
     });
 
+    orderLogEl.addEventListener('click', (event) => {
+      if (event.target.tagName === 'BUTTON' && event.target.dataset.action && event.target.dataset.id) {
+        const action = event.target.dataset.action;
+        const id = parseInt(event.target.dataset.id, 10);
+        const order = orders.find(o => o.id === id);
+        if (!order) return;
+
+        if (action === 'prepare' && currentUser instanceof Restaurant && order.status === 'Placed') {
+          order.status = 'Prepared';
+          logMessage(`🍲 Order #${id} prepared by restaurant`);
+        } else if (action === 'pickup' && currentUser instanceof DeliveryPartner && order.status === 'Prepared') {
+          order.status = 'Out for Delivery';
+          logMessage(`🚚 Order #${id} picked up for delivery`);
+        } else if (action === 'deliver' && currentUser instanceof DeliveryPartner && order.status === 'Out for Delivery') {
+          order.status = 'Delivered';
+          logMessage(`✅ Order #${id} delivered successfully`);
+        } else if (action === 'cancel' && currentUser instanceof Admin && ['Placed', 'Prepared', 'Out for Delivery'].includes(order.status)) {
+          order.status = 'Cancelled';
+          logMessage(`❌ Order #${id} cancelled by admin`);
+        }
+        updateOrdersDisplay();
+      }
+    });
+
     placeOrderBtn.addEventListener('click', placeOrder);
     clearCartBtn.addEventListener('click', clearCart);
     setUserBtn.addEventListener('click', setUserRole);
@@ -633,6 +750,7 @@
       logMessage('ℹ️ Please select a user role to get started');
       initializeMenu();
       updateCart();
+      updateOrdersDisplay();
     }
 
     // Initialize the application when DOM is loaded
